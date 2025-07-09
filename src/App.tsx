@@ -8,6 +8,12 @@ import { SignUpPage } from './pages/SignUpPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { LiveBiddingPage } from './pages/LiveBiddingPage';
 import { UserDashboard } from './pages/UserDashboard';
+import { FarmerDashboard } from './pages/FarmerDashboard';
+import { TraderDashboard } from './pages/TraderDashboard';
+import { CartPage } from './pages/CartPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { AddProductPage } from './pages/AddProductPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 function App() {
   return (
@@ -20,8 +26,14 @@ function App() {
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/products" element={<ProductsPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
               <Route path="/bidding" element={<LiveBiddingPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/user/dashboard" element={<UserDashboard />} />
+              <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
+              <Route path="/farmer/add-product" element={<AddProductPage />} />
+              <Route path="/trader/dashboard" element={<TraderDashboard />} />
               {/* More routes will be added here */}
             </Routes>
           </Layout>

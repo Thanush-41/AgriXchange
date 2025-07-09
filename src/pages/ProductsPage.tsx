@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, MapPin, Star } from 'lucide-react';
-import { Button, Card, Input } from '../components/ui';
+import { Button, Card, Input, Loader } from '../components/ui';
+import { useCart } from '../context/CartContext';
 import type { RetailProduct, ProductCategory } from '../types';
 
 // Mock data for demonstration
@@ -112,7 +113,10 @@ const categories: { value: ProductCategory; label: string }[] = [
 ];
 
 export const ProductsPage: React.FC = () => {
-  const [products, setProducts] = useState<RetailProduct[]>(mockProducts);
+  const { addToCart } = useCart();
+  const [allProducts, setAllProducts] = useState<RetailProduct[]>([]);
+  const [products, setProducts] = useState<RetailProduct[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -120,9 +124,72 @@ export const ProductsPage: React.FC = () => {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
   const [sortBy, setSortBy] = useState<'price-asc' | 'price-desc' | 'latest' | 'popular'>('latest');
 
+  // Fetch products from backend
   useEffect(() => {
-    // Simulate filtering logic
-    let filteredProducts = [...mockProducts];
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:5000/api/products');
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Fetched all products:', data);
+          
+          if (data.success && data.data) {
+            // Map backend products to frontend format
+            const mappedProducts: RetailProduct[] = data.data.data
+              .filter((product: any) => product.type === 'retail') // Only show retail products
+              .map((product: any) => ({
+                id: product._id,
+                name: product.name,
+                category: product.category,
+                description: product.description || '',
+                images: product.images || ['https://images.unsplash.com/photo-1546470427-e5f5e7e7ff34?w=150&h=150&fit=crop'],
+                farmerId: product.farmerId._id || product.farmerId,
+                farmer: {
+                  id: product.farmerId._id || product.farmerId,
+                  name: product.farmerId.name || 'Unknown Farmer',
+                  phone: product.farmerId.phone || '',
+                  role: 'farmer',
+                  address: product.location?.address || '',
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  verificationStatus: 'verified' as const,
+                },
+                location: product.location || { latitude: 0, longitude: 0, address: '' },
+                type: 'retail',
+                price: product.price || 0,
+                unit: product.unit || '',
+                quantity: product.quantity || 0,
+                minOrderQuantity: product.minOrderQuantity || 1,
+                isActive: true,
+                createdAt: new Date(product.createdAt),
+                updatedAt: new Date(product.updatedAt),
+              }));
+
+            setAllProducts(mappedProducts);
+          } else {
+            console.warn('No products found or invalid response structure');
+            setAllProducts(mockProducts); // Fallback to mock data
+          }
+        } else {
+          console.error('Failed to fetch products:', response.status);
+          setAllProducts(mockProducts); // Fallback to mock data
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setAllProducts(mockProducts); // Fallback to mock data
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    // Filter and sort products
+    let filteredProducts = [...allProducts];
 
     if (searchQuery) {
       filteredProducts = filteredProducts.filter(product =>
@@ -156,7 +223,12 @@ export const ProductsPage: React.FC = () => {
     setProducts(filteredProducts);
   }, [searchQuery, selectedCategory, priceRange, sortBy]);
 
-  const ProductCard: React.FC<{ product: RetailProduct }> = ({ product }) => (
+  const ProductCard: React.FC<{ product: RetailProduct }> = ({ product }) => {
+    const handleAddToCart = () => {
+      addToCart(product, product.minOrderQuantity);
+    };
+
+    return (
     <Card hover className="overflow-hidden">
       <div className="aspect-w-16 aspect-h-9">
         <img
@@ -191,11 +263,12 @@ export const ProductsPage: React.FC = () => {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-500">Min order: {product.minOrderQuantity} {product.unit}</span>
-          <Button size="sm">Add to Cart</Button>
+          <Button size="sm" onClick={handleAddToCart}>Add to Cart</Button>
         </div>
       </div>
     </Card>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -330,7 +403,11 @@ export const ProductsPage: React.FC = () => {
         </div>
 
         {/* Products Grid */}
-        {viewMode === 'grid' ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader size="lg" />
+          </div>
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map(product => (
               <ProductCard key={product.id} product={product} />

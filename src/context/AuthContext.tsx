@@ -45,27 +45,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const login = async (phone: string, _password: string, role: UserRole) => {
+  const login = async (phone: string, password: string, role: UserRole) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock user data based on role
-      const mockUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: role === 'farmer' ? 'John Farmer' : role === 'trader' ? 'Jane Trader' : 'Bob User',
-        phone,
-        role,
-        address: '123 Main St, City, State',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      // Call the actual backend API
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone, password, role }),
+      });
 
-      setUser(mockUser);
-      localStorage.setItem('agrixchange_user', JSON.stringify(mockUser));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        const userData = data.data.user;
+        setUser(userData);
+        localStorage.setItem('agrixchange_user', JSON.stringify(userData));
+        // Store the token if provided
+        if (data.data.token) {
+          localStorage.setItem('agrixchange_token', data.data.token);
+        }
+      } else {
+        throw new Error(data.message || 'Login failed');
+      }
     } catch (error) {
-      throw new Error('Login failed. Please check your credentials.');
+      throw new Error(error instanceof Error ? error.message : 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -74,24 +85,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Registration request:', userData);
       
-      const newUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: userData.name,
-        phone: userData.phone,
-        email: userData.email,
-        role: userData.role,
-        address: userData.address,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      // Call the actual backend API
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
 
-      setUser(newUser);
-      localStorage.setItem('agrixchange_user', JSON.stringify(newUser));
+      console.log('Registration response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('Registration error data:', errorData);
+        console.log('Validation errors:', errorData.errors);
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+      console.log('Registration success data:', data);
+      
+      if (data.success) {
+        const newUser = data.data.user;
+        setUser(newUser);
+        localStorage.setItem('agrixchange_user', JSON.stringify(newUser));
+        // Store the token if provided
+        if (data.data.token) {
+          localStorage.setItem('agrixchange_token', data.data.token);
+        }
+      } else {
+        throw new Error(data.message || 'Registration failed');
+      }
     } catch (error) {
-      throw new Error('Registration failed. Please try again.');
+      console.error('Registration error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('agrixchange_user');
+    localStorage.removeItem('agrixchange_token');
   };
 
   const updateUser = (userData: Partial<User>) => {

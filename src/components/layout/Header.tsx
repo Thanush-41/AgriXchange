@@ -10,6 +10,7 @@ export const Header: React.FC = () => {
   const { totalItems } = useCart();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -77,22 +78,31 @@ export const Header: React.FC = () => {
               </span>
             )}
           </Link>
-          <div className="relative group">
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors">
+          <div className="relative">
+            <button
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors"
+              onClick={() => setIsProfileMenuOpen((open) => !open)}
+              aria-haspopup="true"
+              aria-expanded={isProfileMenuOpen}
+              tabIndex={0}
+              type="button"
+            >
               <User className="w-6 h-6" />
               <span className="hidden md:block">{user.name}</span>
             </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 invisible group-hover:visible">
-              <Link to={getDashboardLink()} className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Dashboard
-              </Link>
-              <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Profile
-              </Link>
-              <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Logout
-              </button>
-            </div>
+            {isProfileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                <Link to={getDashboardLink()} className="block px-4 py-2 text-gray-700 hover:bg-gray-100" onClick={() => setIsProfileMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100" onClick={() => setIsProfileMenuOpen(false)}>
+                  Profile
+                </Link>
+                <button onClick={() => { handleLogout(); setIsProfileMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       );
@@ -111,22 +121,31 @@ export const Header: React.FC = () => {
           <Link to="/news" className="text-gray-600 hover:text-primary-600 transition-colors">
             News
           </Link>
-          <div className="relative group">
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors">
+          <div className="relative">
+            <button
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors"
+              onClick={() => setIsProfileMenuOpen((open) => !open)}
+              aria-haspopup="true"
+              aria-expanded={isProfileMenuOpen}
+              tabIndex={0}
+              type="button"
+            >
               <User className="w-6 h-6" />
               <span className="hidden md:block">{user.name}</span>
             </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 invisible group-hover:visible">
-              <Link to={getDashboardLink()} className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Dashboard
-              </Link>
-              <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Profile
-              </Link>
-              <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Logout
-              </button>
-            </div>
+            {isProfileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                <Link to={getDashboardLink()} className="block px-4 py-2 text-gray-700 hover:bg-gray-100" onClick={() => setIsProfileMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100" onClick={() => setIsProfileMenuOpen(false)}>
+                  Profile
+                </Link>
+                <button onClick={() => { handleLogout(); setIsProfileMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       );
@@ -139,22 +158,31 @@ export const Header: React.FC = () => {
           <Link to="/bidding-history" className="text-gray-600 hover:text-primary-600 transition-colors">
             Bidding History
           </Link>
-          <div className="relative group">
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors">
+          <div className="relative">
+            <button
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors"
+              onClick={() => setIsProfileMenuOpen((open) => !open)}
+              aria-haspopup="true"
+              aria-expanded={isProfileMenuOpen}
+              tabIndex={0}
+              type="button"
+            >
               <User className="w-6 h-6" />
               <span className="hidden md:block">{user.name}</span>
             </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 invisible group-hover:visible">
-              <Link to={getDashboardLink()} className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Dashboard
-              </Link>
-              <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Profile
-              </Link>
-              <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Logout
-              </button>
-            </div>
+            {isProfileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                <Link to={getDashboardLink()} className="block px-4 py-2 text-gray-700 hover:bg-gray-100" onClick={() => setIsProfileMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100" onClick={() => setIsProfileMenuOpen(false)}>
+                  Profile
+                </Link>
+                <button onClick={() => { handleLogout(); setIsProfileMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       );

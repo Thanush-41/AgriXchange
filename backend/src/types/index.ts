@@ -274,3 +274,16 @@ export interface AuthenticatedRequest extends Request {
 export interface AuthenticatedRequestWithFiles extends AuthenticatedRequest {
   files?: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[]; };
 }
+
+export interface IProductRating {
+  userId: string;
+  value: number;
+  comment?: string;
+  createdAt: Date;
+}
+
+// Extend IProduct to include ratings and averageRating
+export interface IProductWithRatings extends IProduct {
+  ratings: IProductRating[];
+  averageRating: number;
+}

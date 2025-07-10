@@ -42,6 +42,13 @@ export interface Address {
   isDefault: boolean;
 }
 
+export interface ProductRating {
+  userId: string;
+  value: number;
+  comment?: string;
+  createdAt: string | Date;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -58,6 +65,8 @@ export interface Product {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  ratings?: ProductRating[];
+  averageRating?: number;
 }
 
 export interface RetailProduct extends Product {
@@ -66,6 +75,8 @@ export interface RetailProduct extends Product {
   unit: string; // kg, piece, dozen, etc.
   quantity: number;
   minOrderQuantity: number;
+  ratings?: ProductRating[];
+  averageRating?: number;
 }
 
 export interface WholesaleProduct extends Product {
@@ -76,6 +87,8 @@ export interface WholesaleProduct extends Product {
   qualityCertificate: string; // AGMARK certificate URL
   biddingEndTime: Date;
   biddingStatus: 'active' | 'ended' | 'cancelled';
+  ratings?: ProductRating[];
+  averageRating?: number;
 }
 
 export type ProductCategory = 

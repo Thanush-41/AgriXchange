@@ -5,6 +5,7 @@ import biddingRoutes from './biddingRoutes.js';
 import orderRoutes from './orderRoutes.js';
 import weatherRoutes from './weatherRoutes.js';
 import contentRoutes from './contentRoutes.js';
+import cartRoutes from './cartRoutes.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use('/bidding', biddingRoutes);
 router.use('/orders', orderRoutes);
 router.use('/weather', weatherRoutes);
 router.use('/content', contentRoutes);
+router.use('/cart', cartRoutes);
 
 // Health check
 router.get('/health', (req, res) => {

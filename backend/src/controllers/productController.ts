@@ -8,6 +8,8 @@ import {
   createPaginatedResponse, 
   getSkipValue 
 } from '../utils/index.js';
+import mongoose from 'mongoose';
+import type { IProductWithRatings } from '../types/index.js';
 
 export const createProduct = async (req: AuthenticatedRequestWithFiles, res: Response): Promise<void> => {
   try {
@@ -281,5 +283,39 @@ export const getFarmerProducts = async (req: Request, res: Response): Promise<vo
   } catch (error) {
     console.error('Get farmer products error:', error);
     res.status(500).json(errorResponse('Failed to retrieve farmer products'));
+  }
+};
+
+// Add product rating
+export const rateProduct = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const productId = req.params.id;
+    const userId = req.user!.userId;
+    const { value, comment } = req.body;
+
+    if (!value || value < 1 || value > 5) {
+      res.status(400).json(errorResponse('Rating value must be between 1 and 5'));
+      return;
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      res.status(404).json(errorResponse('Product not found'));
+      return;
+    }
+
+    // Remove previous rating by this user if exists
+    const productWithRatings = product as unknown as IProductWithRatings;
+    productWithRatings.ratings = productWithRatings.ratings.filter((r: any) => r.userId.toString() !== userId);
+    // Add new rating
+    productWithRatings.ratings.push({ userId, value, comment, createdAt: new Date() });
+    // Recalculate average rating
+    const avg = productWithRatings.ratings.reduce((sum: number, r: any) => sum + r.value, 0) / productWithRatings.ratings.length;
+    productWithRatings.averageRating = Math.round(avg * 10) / 10;
+    await product.save();
+    res.json(successResponse({ averageRating: productWithRatings.averageRating, ratings: productWithRatings.ratings }, 'Product rated successfully'));
+  } catch (error) {
+    console.error('Rate product error:', error);
+    res.status(500).json(errorResponse('Failed to rate product'));
   }
 };

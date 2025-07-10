@@ -21,6 +21,7 @@ interface Product {
   category: string;
   quantity: number;
   price: number;
+  unit: string; // Add unit field
   status: 'active' | 'sold' | 'expired';
   type: 'retail' | 'wholesale';
   image: string;
@@ -70,6 +71,7 @@ export const FarmerDashboard: React.FC = () => {
             category: product.category,
             quantity: product.quantity,
             price: product.price || product.startingPrice || 0,
+            unit: product.unit || 'kg', // Map unit from backend, fallback to 'kg'
             status: 'active', // You might want to add status field to backend
             type: product.type,
             image: product.images?.[0] || 'https://images.unsplash.com/photo-1546470427-e5f5e7e7ff34?w=150&h=150&fit=crop',
@@ -238,10 +240,11 @@ export const FarmerDashboard: React.FC = () => {
                       <div>
                         <h3 className="font-medium text-gray-900">{product.name}</h3>
                         <p className="text-sm text-gray-600">{product.category} • {product.type}</p>
+                        <p className="text-xs text-gray-500">In Stock: {product.quantity} {product.unit}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatCurrency(product.price)}/kg</p>
+                      <p className="font-medium text-gray-900">{formatCurrency(product.price)}/{product.unit}</p>
                       <div className="flex items-center space-x-2">
                         <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
                           product.status === 'active' 

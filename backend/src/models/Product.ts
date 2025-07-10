@@ -35,6 +35,19 @@ productSchema.index({ isActive: 1 });
 productSchema.index({ 'location.address': 'text', name: 'text', description: 'text' });
 productSchema.index({ createdAt: -1 });
 
+// Rating Schema
+const ratingSchema = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  value: { type: Number, required: true, min: 1, max: 5 },
+  comment: { type: String },
+  createdAt: { type: Date, default: Date.now },
+});
+
+productSchema.add({
+  ratings: { type: [ratingSchema], default: [] },
+  averageRating: { type: Number, default: 0 },
+});
+
 // Base Product Model
 export const Product = mongoose.model('Product', productSchema);
 

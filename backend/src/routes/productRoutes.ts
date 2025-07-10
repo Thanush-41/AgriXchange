@@ -6,7 +6,8 @@ import {
   updateProduct,
   deleteProduct,
   getMyProducts,
-  getFarmerProducts
+  getFarmerProducts,
+  rateProduct
 } from '../controllers/index.js';
 import { authenticateToken, authorizeRoles, optionalAuth, uploadProductImages } from '../middleware/index.js';
 import { validateRequest } from '../middleware/index.js';
@@ -55,5 +56,8 @@ router.get('/my/products',
   validateRequest(productQuerySchema), 
   getMyProducts
 );
+
+// Add product rating (authenticated users)
+router.post('/:id/rate', authenticateToken, rateProduct);
 
 export default router;

@@ -9,6 +9,14 @@ export const CartPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, updateQuantity, removeFromCart, totalAmount } = useCart();
 
+  // Updated handlers to await backend sync
+  const handleUpdateQuantity = async (productId: string, quantity: number) => {
+    await updateQuantity(productId, quantity);
+  };
+  const handleRemoveFromCart = async (productId: string) => {
+    await removeFromCart(productId);
+  };
+
   if (items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -59,20 +67,18 @@ export const CartPage: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateQuantity(item.productId, Math.max(0, item.quantity - 1))}
+                    onClick={() => handleUpdateQuantity(item.productId, Math.max(0, item.quantity - 1))}
                     disabled={item.quantity <= 1}
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
-                  
                   <span className="w-12 text-center font-medium">
                     {item.quantity}
                   </span>
-                  
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                    onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
@@ -86,7 +92,7 @@ export const CartPage: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => removeFromCart(item.productId)}
+                    onClick={() => handleRemoveFromCart(item.productId)}
                     className="mt-2 text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="w-4 h-4" />

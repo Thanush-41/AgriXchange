@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CartItem, RetailProduct } from '../types';
 
@@ -6,10 +6,10 @@ interface CartContextType {
   items: CartItem[];
   totalItems: number;
   totalAmount: number;
-  addToCart: (product: RetailProduct, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
+  addToCart: (product: RetailProduct, quantity: number) => Promise<void>;
+  removeFromCart: (productId: string) => Promise<void>;
+  updateQuantity: (productId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   isInCart: (productId: string) => boolean;
   getItemQuantity: (productId: string) => number;
 }
@@ -30,42 +30,97 @@ interface CartProviderProps {
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const token = localStorage.getItem('agrixchange_token');
 
-  const addToCart = (product: RetailProduct, quantity: number) => {
-    setItems(prevItems => {
-      const existingItem = prevItems.find(item => item.productId === product.id);
-      
-      if (existingItem) {
-        return prevItems.map(item =>
-          item.productId === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+  // Fetch cart from backend
+  const fetchCart = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/cart', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.data && Array.isArray(data.data.items)) {
+        // Map backend cart items to frontend CartItem
+        setItems(
+          data.data.items.map((item: any) => {
+            if (!item.productId) return null; // skip nulls
+            return {
+              productId: item.productId._id || item.productId,
+              product: item.productId, // populated product
+              quantity: item.quantity,
+            };
+          }).filter(Boolean)
         );
       } else {
-        return [...prevItems, { productId: product.id, product, quantity }];
+        setItems([]); // Ensure cart is empty if no data
+        if (!data.success) {
+          console.error('Cart fetch error:', data.message || data.error);
+        }
       }
-    });
-  };
-
-  const removeFromCart = (productId: string) => {
-    setItems(prevItems => prevItems.filter(item => item.productId !== productId));
-  };
-
-  const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
+    } catch (e) {
+      setItems([]);
+      console.error('Cart fetch exception:', e);
     }
-    
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.productId === productId ? { ...item, quantity } : item
-      )
-    );
   };
 
-  const clearCart = () => {
-    setItems([]);
+  useEffect(() => {
+    fetchCart();
+    // eslint-disable-next-line
+  }, [token]);
+
+  const addToCart = async (product: RetailProduct, quantity: number): Promise<void> => {
+    if (!token) return;
+    const res = await fetch('http://localhost:5000/api/cart/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ productId: product.id, quantity }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      console.error('Add to cart error:', data.message || data.error);
+    } else {
+      console.log('Add to cart response:', data);
+    }
+    await fetchCart();
+  };
+
+  const removeFromCart = async (productId: string): Promise<void> => {
+    if (!token) return;
+    await fetch('http://localhost:5000/api/cart/remove', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ productId }),
+    });
+    await fetchCart();
+  };
+
+  const updateQuantity = async (productId: string, quantity: number): Promise<void> => {
+    if (!token) return;
+    await fetch('http://localhost:5000/api/cart/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ productId, quantity }),
+    });
+    await fetchCart();
+  };
+
+  const clearCart = async (): Promise<void> => {
+    if (!token) return;
+    await fetch('http://localhost:5000/api/cart/clear', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await fetchCart();
   };
 
   const isInCart = (productId: string) => {

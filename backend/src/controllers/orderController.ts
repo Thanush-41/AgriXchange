@@ -30,11 +30,6 @@ export const createOrder = async (req: AuthenticatedRequest, res: Response): Pro
         return;
       }
 
-      if (item.quantity < product.minOrderQuantity) {
-        res.status(400).json(errorResponse(`Minimum order quantity for ${product.name} is ${product.minOrderQuantity}`));
-        return;
-      }
-
       if (item.quantity > product.quantity) {
         res.status(400).json(errorResponse(`Not enough stock for ${product.name}`));
         return;

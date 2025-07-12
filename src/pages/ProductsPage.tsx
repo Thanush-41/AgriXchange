@@ -34,7 +34,9 @@ export const ProductsPage: React.FC = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/products');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const response = await fetch('http://localhost:5000/api/products', { headers });
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
@@ -60,7 +62,6 @@ export const ProductsPage: React.FC = () => {
             price: product.price || product.startingPrice || 0,
             unit: product.unit || '',
             quantity: product.quantity || 0,
-            minOrderQuantity: product.minOrderQuantity || 1,
             isActive: true,
             createdAt: new Date(product.createdAt),
             updatedAt: new Date(product.updatedAt),
@@ -149,7 +150,6 @@ export const ProductsPage: React.FC = () => {
   const ProductCard: React.FC<{
     product: RetailProduct;
   }> = ({ product }) => {
-    const { addToCart } = useCart();
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [localAvg, setLocalAvg] = useState<number | undefined>(product.averageRating);
@@ -196,15 +196,6 @@ export const ProductsPage: React.FC = () => {
         setSubmitting(false);
       }
     };
-
-    // Helper to robustly extract farmerId as string
-    const getFarmerIdString = (farmerId: any): string => {
-      if (typeof farmerId === 'object' && farmerId !== null) {
-        return farmerId._id || farmerId.id || '';
-      }
-      return String(farmerId);
-    };
-    const isOwnProduct = isFarmerUser && getFarmerIdString(product.farmerId) === String(userId);
 
     return (
       <Card hover className="overflow-hidden">

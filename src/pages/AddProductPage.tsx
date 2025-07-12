@@ -21,15 +21,16 @@ const productSchema = z.object({
   // Retail specific fields
   price: z.number().min(0.01, 'Price must be greater than 0').optional(),
   unit: z.string().min(1, 'Unit is required').optional(),
-  minOrderQuantity: z.number().min(1, 'Minimum order quantity must be at least 1').optional(),
   // Wholesale specific fields
   startingPrice: z.number().min(0.01, 'Starting price must be greater than 0').optional(),
   biddingDuration: z.number().min(1, 'Bidding duration must be at least 1 hour').optional(),
+  qualityCertificate: z.string().url('Must be a valid URL').optional(),
 }).refine((data) => {
   if (data.type === 'retail') {
-    return data.price && data.unit && data.minOrderQuantity;
+    return data.price && data.unit;
   }
-  return data.startingPrice && data.biddingDuration;
+  // For wholesale, require startingPrice, biddingDuration, unit, qualityCertificate
+  return data.startingPrice && data.biddingDuration && data.unit && data.qualityCertificate;
 }, {
   message: 'Missing required fields for the selected product type',
   path: ['type'],
@@ -63,7 +64,6 @@ export const AddProductPage: React.FC = () => {
     defaultValues: {
       type: 'retail',
       unit: 'kg',
-      minOrderQuantity: 1,
       quantity: 1,
       location: {
         latitude: 0,
@@ -86,54 +86,42 @@ export const AddProductPage: React.FC = () => {
 
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
-    
     try {
-      console.log('=== FRONTEND PRODUCT SUBMISSION ===');
-      console.log('Form data received:', data);
-      console.log('Product type:', data.type);
-      console.log('Location:', data.location);
-      console.log('Token:', localStorage.getItem('agrixchange_token'));
-      
-      // Create FormData for file upload
-      const formData = new FormData();
-      
-      // Add common fields
-      formData.append('name', data.name);
-      formData.append('category', data.category);
-      formData.append('description', data.description);
-      formData.append('type', data.type);
-      formData.append('quantity', data.quantity.toString());
-      formData.append('location', JSON.stringify(data.location));
-      
-      // Add type-specific fields
-      if (data.type === 'retail') {
-        if (data.price) formData.append('price', data.price.toString());
-        if (data.unit) formData.append('unit', data.unit);
-        if (data.minOrderQuantity) formData.append('minOrderQuantity', data.minOrderQuantity.toString());
-      } else {
-        if (data.startingPrice) formData.append('startingPrice', data.startingPrice.toString());
-        if (data.biddingDuration) formData.append('biddingDuration', data.biddingDuration.toString());
+      // Build the exact payload for wholesale
+      let payload: any = {
+        name: data.name,
+        category: data.category,
+        description: data.description,
+        type: data.type,
+        quantity: data.quantity,
+        unit: data.unit,
+        location: data.location,
+      };
+      if (data.type === 'wholesale') {
+        payload = {
+          ...payload,
+          startingPrice: data.startingPrice,
+          biddingDuration: data.biddingDuration,
+          qualityCertificate: data.qualityCertificate,
+        };
+      } else if (data.type === 'retail') {
+        payload = {
+          ...payload,
+          price: data.price,
+        };
       }
-      
-      // Log what's being sent
-      console.log('FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-      
-      // Add images
-      selectedImages.forEach((image) => {
-        formData.append(`images`, image);
-      });
 
+      // Send as JSON (no images for now)
       const response = await fetch('http://localhost:5000/api/products', {
         method: 'POST',
-        body: formData,
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('agrixchange_token')}`,
         },
+        body: JSON.stringify(payload),
       });
 
+      console.log('Payload sent:', payload);
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
 
@@ -141,21 +129,18 @@ export const AddProductPage: React.FC = () => {
         alert('Product added successfully!');
         navigate('/farmer/dashboard');
       } else {
-        const errorText = await response.text();
-        console.log('Error response text:', errorText);
-        
+        let errorText = await response.text();
+        let errorMsg = errorText;
         try {
           const error = JSON.parse(errorText);
-          console.log('Parsed error:', error);
-          alert(error.message || 'Failed to add product');
-        } catch (parseError) {
-          console.log('Failed to parse error response:', parseError);
-          alert(`Failed to add product: ${response.status} ${response.statusText}`);
-        }
+          errorMsg = error.message || errorText;
+        } catch (parseError) {}
+        alert(`Failed to add product: ${response.status} ${response.statusText}\n${errorMsg}`);
+        console.error('Full error response:', errorText);
       }
     } catch (error) {
+      alert('Failed to add product. JS error: ' + (error instanceof Error ? error.message : String(error)));
       console.error('Error adding product:', error);
-      alert('Failed to add product. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -203,16 +188,22 @@ export const AddProductPage: React.FC = () => {
               <div>
                 <Input
                   label="Product Name"
+                  id="product-name"
+                  name="name"
+                  autoComplete="off"
                   {...register('name')}
                   error={errors.name?.message}
                   placeholder="e.g., Fresh Tomatoes"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                   Category
                 </label>
                 <select
+                  id="category"
+                  name="category"
+                  autoComplete="off"
                   {...register('category')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
@@ -231,10 +222,13 @@ export const AddProductPage: React.FC = () => {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
                 Description
               </label>
               <textarea
+                id="description"
+                name="description"
+                autoComplete="off"
                 {...register('description')}
                 rows={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -334,21 +328,18 @@ export const AddProductPage: React.FC = () => {
                     placeholder="100"
                   />
                 </div>
+                <div>
+                  <Input
+                    label="Unit"
+                    {...register('unit')}
+                    error={errors.unit?.message}
+                    placeholder="kg, pieces, etc."
+                  />
+                </div>
               </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {productType === 'retail' && (
-                <div>
-                  <Input
-                    label="Minimum Order Quantity"
-                    type="number"
-                    {...register('minOrderQuantity', { valueAsNumber: true })}
-                    error={errors.minOrderQuantity?.message}
-                    placeholder="1"
-                  />
-                </div>
-              )}
               {productType === 'wholesale' && (
                 <div>
                   <Input
@@ -361,6 +352,31 @@ export const AddProductPage: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Quality Certificate URL */}
+            {productType === 'wholesale' && (
+              <div className="mb-4">
+                <label htmlFor="qualityCertificate" className="block text-sm font-medium text-gray-700">
+                  Quality Certificate (URL)
+                </label>
+                <input
+                  id="qualityCertificate"
+                  type="url"
+                  {...register('qualityCertificate', { required: 'Quality certificate URL is required' })}
+                  name="qualityCertificate"
+                  autoComplete="url"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
+                  placeholder="https://example.com/cert1.pdf"
+                  aria-invalid={!!errors.qualityCertificate}
+                  aria-describedby="qualityCertificate-error"
+                />
+                {errors.qualityCertificate && (
+                  <p id="qualityCertificate-error" className="mt-2 text-sm text-red-600">
+                    {errors.qualityCertificate.message as string}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Image Upload */}
             <div>

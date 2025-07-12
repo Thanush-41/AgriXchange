@@ -46,8 +46,8 @@ export const createProduct = async (req: AuthenticatedRequestWithFiles, res: Res
     
     // Validate required fields based on type
     if (type === 'retail') {
-      if (!productData.price || !productData.unit || !productData.minOrderQuantity) {
-        res.status(400).json(errorResponse('Price, unit, and minimum order quantity are required for retail products'));
+      if (!productData.price || !productData.unit) {
+        res.status(400).json(errorResponse('Price, unit are required for retail products'));
         return;
       }
     } else if (type === 'wholesale') {
@@ -118,21 +118,29 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     const { page, limit, sort } = getPaginationOptions(req.query);
     const skip = getSkipValue(page, limit);
 
-    // Build query
+    // Cast req to AuthenticatedRequest to access user
+    const authReq = req as any as AuthenticatedRequest;
     const query: any = { isActive: true };
-    
+
+    // Role-based filtering
+    if (authReq.user && authReq.user.role) {
+      if (authReq.user.role === 'user') {
+        query.type = 'retail';
+      } else if (authReq.user.role === 'trader') {
+        query.type = 'wholesale';
+      }
+    } else if (req.query.type) {
+      query.type = req.query.type;
+    }
+
     if (req.query.category) {
       query.category = req.query.category;
     }
-    
-    if (req.query.type) {
-      query.type = req.query.type;
-    }
-    
+
     if (req.query.search) {
       query.$text = { $search: req.query.search };
     }
-    
+
     if (req.query.minPrice || req.query.maxPrice) {
       query.price = {};
       if (req.query.minPrice) query.price.$gte = Number(req.query.minPrice);

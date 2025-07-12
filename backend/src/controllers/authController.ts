@@ -73,10 +73,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { phone, password, role } = req.body;
+    const { phone, password } = req.body;
 
-    // Find user with matching phone and role
-    const user = await User.findOne({ phone, role });
+    // Only allow login with phone (role is not required for login)
+    const user = await User.findOne({ phone });
     if (!user) {
       res.status(401).json(errorResponse('Invalid credentials'));
       return;

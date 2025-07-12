@@ -56,7 +56,6 @@ const retailProductSchema = new Schema({
   price: { type: Number, required: true, min: 0 },
   unit: { type: String, required: true }, // kg, piece, dozen, etc.
   quantity: { type: Number, required: true, min: 0 },
-  minOrderQuantity: { type: Number, required: true, min: 1 },
 });
 
 // Wholesale Product Schema

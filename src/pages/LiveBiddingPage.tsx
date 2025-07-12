@@ -4,147 +4,48 @@ import { Clock, Users, TrendingUp, Eye, Filter, Search } from 'lucide-react';
 import { Button, Card, Input } from '../components/ui';
 import type { WholesaleProduct } from '../types';
 
-// Mock data for bidding products
-const mockBiddingProducts: (WholesaleProduct & { 
-  currentBid?: number; 
-  bidCount: number; 
-  timeLeft: string;
-  participants: number;
-})[] = [
-  {
-    id: 'bid1',
-    name: 'Organic Wheat',
-    category: 'grains',
-    description: 'Premium quality organic wheat from Punjab',
-    images: ['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-    farmerId: 'farmer1',
-    farmer: {
-      id: 'farmer1',
-      name: 'Harpreet Singh',
-      phone: '9876543210',
-      role: 'farmer',
-      address: 'Punjab, India',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      verificationStatus: 'verified',
-    },
-    location: {
-      latitude: 30.7333,
-      longitude: 76.7794,
-      address: 'Ludhiana, Punjab',
-    },
-    type: 'wholesale',
-    startingPrice: 2000,
-    quantity: 1000,
-    unit: 'kg',
-    qualityCertificate: 'https://example.com/cert1.pdf',
-    biddingEndTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
-    biddingStatus: 'active',
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    currentBid: 2150,
-    bidCount: 8,
-    timeLeft: '2h 15m',
-    participants: 5,
-  },
-  {
-    id: 'bid2',
-    name: 'Fresh Onions',
-    category: 'vegetables',
-    description: 'Grade A onions, freshly harvested',
-    images: ['https://images.unsplash.com/photo-1518977676601-b53f82aba655?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-    farmerId: 'farmer2',
-    farmer: {
-      id: 'farmer2',
-      name: 'Rajesh Patel',
-      phone: '9876543211',
-      role: 'farmer',
-      address: 'Maharashtra, India',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      verificationStatus: 'verified',
-    },
-    location: {
-      latitude: 19.0760,
-      longitude: 72.8777,
-      address: 'Nashik, Maharashtra',
-    },
-    type: 'wholesale',
-    startingPrice: 1500,
-    quantity: 2000,
-    unit: 'kg',
-    qualityCertificate: 'https://example.com/cert2.pdf',
-    biddingEndTime: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours from now
-    biddingStatus: 'active',
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    currentBid: 1680,
-    bidCount: 12,
-    timeLeft: '4h 52m',
-    participants: 8,
-  },
-  {
-    id: 'bid3',
-    name: 'Basmati Rice',
-    category: 'grains',
-    description: 'Premium basmati rice, export quality',
-    images: ['https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-    farmerId: 'farmer3',
-    farmer: {
-      id: 'farmer3',
-      name: 'Sukhwinder Kaur',
-      phone: '9876543212',
-      role: 'farmer',
-      address: 'Punjab, India',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      verificationStatus: 'verified',
-    },
-    location: {
-      latitude: 31.6340,
-      longitude: 74.8723,
-      address: 'Amritsar, Punjab',
-    },
-    type: 'wholesale',
-    startingPrice: 4500,
-    quantity: 500,
-    unit: 'kg',
-    qualityCertificate: 'https://example.com/cert3.pdf',
-    biddingEndTime: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
-    biddingStatus: 'active',
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    currentBid: 4750,
-    bidCount: 15,
-    timeLeft: '28m',
-    participants: 6,
-  },
-];
-
 export const LiveBiddingPage: React.FC = () => {
-  const [products, setProducts] = useState(mockBiddingProducts);
+  const [products, setProducts] = useState<WholesaleProduct[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
+  // Simulated auth context (replace with real auth context if available)
+  const user = JSON.parse(localStorage.getItem('agrixchange_user') || 'null');
+  const token = localStorage.getItem('agrixchange_token');
+
   useEffect(() => {
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      setProducts(prev => prev.map(product => ({
-        ...product,
-        currentBid: product.currentBid! + Math.floor(Math.random() * 50),
-        bidCount: product.bidCount + Math.floor(Math.random() * 2),
-      })));
-    }, 5000);
+    // Only fetch for traders
+    if (!user || user.role !== 'trader') return;
+    const fetchBiddings = async () => {
+      try {
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetch('http://localhost:5000/api/bidding/active', { headers });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setProducts(data.data.data || []);
+          } else {
+            setProducts([]);
+          }
+        } else {
+          setProducts([]);
+        }
+      } catch (error) {
+        setProducts([]);
+      }
+    };
+    fetchBiddings();
+  }, [token, user]);
 
-    return () => clearInterval(interval);
-  }, []);
-
-  const BiddingCard: React.FC<{ product: typeof mockBiddingProducts[0] }> = ({ product }) => {
-    const isEndingSoon = product.timeLeft.includes('m') && !product.timeLeft.includes('h');
-    
+  // BiddingCard for real API data
+  const BiddingCard: React.FC<{ product: WholesaleProduct }> = ({ product }) => {
+    // Fallbacks for stats (API may not provide these fields)
+    const bidCount = (product as any).bidCount ?? 0;
+    const participants = (product as any).participants ?? 0;
+    const currentBid = (product as any).currentBid ?? product.startingPrice;
+    const timeLeft = (product as any).timeLeft ?? '';
+    const isEndingSoon = typeof timeLeft === 'string' && timeLeft.includes('m') && !timeLeft.includes('h');
     return (
       <Card hover className="overflow-hidden">
         <div className="relative">
@@ -154,28 +55,21 @@ export const LiveBiddingPage: React.FC = () => {
             className="w-full h-48 object-cover"
           />
           <div className="absolute top-2 right-2">
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-              isEndingSoon 
-                ? 'bg-red-100 text-red-700' 
-                : 'bg-green-100 text-green-700'
-            }`}>
-              {isEndingSoon ? 'Ending Soon!' : 'Active'}
-            </span>
+            <span className={`px-2 py-1 text-xs font-medium rounded-full ${isEndingSoon ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{isEndingSoon ? 'Ending Soon!' : 'Active'}</span>
           </div>
-          <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
-            <Clock className="w-4 h-4 inline mr-1" />
-            {product.timeLeft}
-          </div>
+          {timeLeft && (
+            <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
+              <Clock className="w-4 h-4 inline mr-1" />
+              {timeLeft}
+            </div>
+          )}
         </div>
-        
         <div className="p-4">
           <div className="flex justify-between items-start mb-2">
             <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
             <span className="text-sm text-gray-500">{product.quantity} {product.unit}</span>
           </div>
-          
           <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-          
           <div className="space-y-2 mb-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-500">Starting Price:</span>
@@ -183,29 +77,23 @@ export const LiveBiddingPage: React.FC = () => {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-500">Current Bid:</span>
-              <span className="text-lg font-bold text-primary-600">
-                ₹{product.currentBid?.toLocaleString()}
-              </span>
+              <span className="text-lg font-bold text-primary-600">₹{currentBid?.toLocaleString()}</span>
             </div>
           </div>
-          
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4 text-sm text-gray-500">
               <div className="flex items-center space-x-1">
                 <TrendingUp className="w-4 h-4" />
-                <span>{product.bidCount} bids</span>
+                <span>{bidCount} bids</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Users className="w-4 h-4" />
-                <span>{product.participants} bidders</span>
+                <span>{participants} bidders</span>
               </div>
             </div>
           </div>
-          
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-              By {product.farmer.name}
-            </div>
+            <div className="text-sm text-gray-600">By {(product.farmer as any)?.name || 'Unknown'}</div>
             <div className="flex space-x-2">
               <Link to={`/bidding/${product.id}`}>
                 <Button size="sm" variant="outline">
@@ -225,6 +113,12 @@ export const LiveBiddingPage: React.FC = () => {
     );
   };
 
+  // Stats: fallback to 0 if fields missing
+  const totalAuctions = products.length;
+  const totalBidders = products.reduce((sum, p) => sum + ((p as any).participants ?? 0), 0);
+  const totalBids = products.reduce((sum, p) => sum + ((p as any).bidCount ?? 0), 0);
+  const highestBid = products.length > 0 ? Math.max(...products.map(p => (p as any).currentBid ?? p.startingPrice ?? 0)) : 0;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -237,24 +131,24 @@ export const LiveBiddingPage: React.FC = () => {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="text-center">
-            <div className="text-2xl font-bold text-primary-600 mb-1">{products.length}</div>
+            <div className="text-2xl font-bold text-primary-600 mb-1">{totalAuctions}</div>
             <div className="text-sm text-gray-600">Active Auctions</div>
           </Card>
           <Card className="text-center">
             <div className="text-2xl font-bold text-secondary-600 mb-1">
-              {products.reduce((sum, p) => sum + p.participants, 0)}
+              {totalBidders}
             </div>
             <div className="text-sm text-gray-600">Active Bidders</div>
           </Card>
           <Card className="text-center">
             <div className="text-2xl font-bold text-green-600 mb-1">
-              {products.reduce((sum, p) => sum + p.bidCount, 0)}
+              {totalBids}
             </div>
             <div className="text-sm text-gray-600">Total Bids</div>
           </Card>
           <Card className="text-center">
             <div className="text-2xl font-bold text-blue-600 mb-1">
-              ₹{Math.max(...products.map(p => p.currentBid!)).toLocaleString()}
+              ₹{highestBid.toLocaleString()}
             </div>
             <div className="text-sm text-gray-600">Highest Bid</div>
           </Card>

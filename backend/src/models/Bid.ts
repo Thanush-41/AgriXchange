@@ -35,12 +35,6 @@ bidSchema.index({ traderId: 1, timestamp: -1 });
 bidSchema.index({ productId: 1, timestamp: -1 });
 bidSchema.index({ isWinning: 1 });
 
-// Ensure only one winning bid per product
-bidSchema.index({ productId: 1, isWinning: 1 }, { 
-  unique: true, 
-  partialFilterExpression: { isWinning: true } 
-});
-
 export const Bid = mongoose.model('Bid', bidSchema);
 
 export default Bid;

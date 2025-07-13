@@ -48,7 +48,7 @@ const config = {
   
   // Bidding
   bidding: {
-    minBidIncrement: 10, // minimum bid increment in currency
+    minBidIncrement: 1, // minimum bid increment in currency
     maxBiddingDuration: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
   },
 };

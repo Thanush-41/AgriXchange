@@ -196,13 +196,19 @@ export const placeBid = async (req: AuthenticatedRequest, res: Response): Promis
 
     // Validate bid amount
     const currentHighest = biddingRoom.currentHighestBid as any;
-    const minimumBid = currentHighest 
-      ? currentHighest.amount + config.bidding.minBidIncrement
+    // Always increment by 1
+    const minimumBid = currentHighest && currentHighest.amount
+      ? currentHighest.amount + 1
       : product.startingPrice;
 
     if (amount < minimumBid) {
       res.status(400).json(errorResponse(`Minimum bid is ₹${minimumBid}`));
       return;
+    }
+
+    // Update previous winning bid BEFORE creating new bid to avoid duplicate key error
+    if (currentHighest) {
+      await Bid.updateOne({ _id: currentHighest._id }, { $set: { isWinning: false } });
     }
 
     // Create new bid
@@ -215,11 +221,6 @@ export const placeBid = async (req: AuthenticatedRequest, res: Response): Promis
     });
 
     await newBid.save();
-
-    // Update previous winning bid
-    if (currentHighest) {
-      await Bid.findByIdAndUpdate(currentHighest._id, { isWinning: false });
-    }
 
     // Update bidding room
     biddingRoom.currentHighestBid = newBid._id as any;

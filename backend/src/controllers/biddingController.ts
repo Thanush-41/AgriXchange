@@ -284,7 +284,7 @@ export const getBiddingHistory = async (req: Request, res: Response): Promise<vo
     const skip = getSkipValue(page, limit);
 
     const bids = await Bid.find({ productId })
-      .populate('traderId', 'name')
+      .populate('traderId', 'name _id')
       .sort({ timestamp: -1 })
       .skip(skip)
       .limit(limit);

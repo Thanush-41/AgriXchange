@@ -155,26 +155,21 @@ export const updateProfile = async (req: AuthenticatedRequest, res: Response): P
 export const changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
-    
     const user = await User.findById(req.user!.userId);
     if (!user) {
       res.status(404).json(errorResponse('User not found'));
       return;
     }
-
     // Verify current password
     const isCurrentPasswordValid = await (user as any).comparePassword(currentPassword);
     if (!isCurrentPasswordValid) {
       res.status(400).json(errorResponse('Current password is incorrect'));
       return;
     }
-
     // Update password
     user.password = newPassword;
     await user.save();
-
     res.json(successResponse(null, 'Password changed successfully'));
-
   } catch (error) {
     console.error('Change password error:', error);
     res.status(500).json(errorResponse('Failed to change password'));

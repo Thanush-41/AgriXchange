@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Users, TrendingUp, Eye, Filter, Search } from 'lucide-react';
 import { Button, Card, Input } from '../components/ui';
 import type { WholesaleProduct } from '../types';
+import { getSocket } from '../utils/socket';
 
 export const LiveBiddingPage: React.FC = () => {
   const [products, setProducts] = useState<WholesaleProduct[]>([]);
@@ -14,7 +15,6 @@ export const LiveBiddingPage: React.FC = () => {
   const token = localStorage.getItem('agrixchange_token');
 
   useEffect(() => {
-    // Only fetch for traders
     if (!user || user.role !== 'trader') return;
     const fetchBiddings = async () => {
       try {
@@ -35,8 +35,8 @@ export const LiveBiddingPage: React.FC = () => {
         setProducts([]);
       }
     };
-    fetchBiddings();
-  }, [token, user]);
+    fetchBiddings(); // Only fetch once on mount
+  }, []);    //[token, user]); use in production
 
   // BiddingCard for real API data
   const BiddingCard: React.FC<{ product: WholesaleProduct }> = ({ product }) => {
@@ -46,6 +46,31 @@ export const LiveBiddingPage: React.FC = () => {
     const currentBid = (product as any).currentBid ?? product.startingPrice;
     const timeLeft = (product as any).timeLeft ?? '';
     const isEndingSoon = typeof timeLeft === 'string' && timeLeft.includes('m') && !timeLeft.includes('h');
+    const handleJoinBidding = () => {
+      if (!user || !token) {
+        alert('Please log in as a trader to join bidding.');
+        return;
+      }
+      // Always create a new socket to ensure fresh auth
+      const socket = getSocket(token);
+      // Authenticate explicitly before joining room
+      socket.emit('authenticate', token);
+      socket.once('authenticated', () => {
+        // Use biddingRoom._id, not product.id
+        const roomId = (product as any).biddingRoom?._id;
+        if (!roomId) {
+          alert('No bidding room found for this product.');
+          return;
+        }
+        socket.emit('join-bidding-room', roomId);
+      });
+      socket.once('room-joined', ({ room }) => {
+        window.location.href = `/bidding/${room._id}`;
+      });
+      socket.once('error', (msg: string) => {
+        alert(msg);
+      });
+    };
     return (
       <Card hover className="overflow-hidden">
         <div className="relative">
@@ -101,11 +126,9 @@ export const LiveBiddingPage: React.FC = () => {
                   View
                 </Button>
               </Link>
-              <Link to={`/bidding/${product.id}`}>
-                <Button size="sm" className={isEndingSoon ? 'bidding-pulse' : ''}>
-                  Join Bidding
-                </Button>
-              </Link>
+              <Button size="sm" className={isEndingSoon ? 'bidding-pulse' : ''} onClick={handleJoinBidding}>
+                Join Bidding
+              </Button>
             </div>
           </div>
         </div>

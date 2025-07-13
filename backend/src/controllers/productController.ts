@@ -93,14 +93,23 @@ export const createProduct = async (req: AuthenticatedRequestWithFiles, res: Res
 
     await product.save();
 
-    // Create bidding room for wholesale products
+    // Create or update bidding room for wholesale products
     if (type === 'wholesale') {
-      const biddingRoom = new BiddingRoom({
-        productId: product._id,
-        endTime: (product as any).biddingEndTime,
-        isActive: true
-      });
-      await biddingRoom.save();
+      // Check if a bidding room already exists for this product
+      let biddingRoom = await BiddingRoom.findOne({ productId: product._id });
+      if (!biddingRoom) {
+        biddingRoom = new BiddingRoom({
+          productId: product._id,
+          endTime: (product as any).biddingEndTime,
+          isActive: true
+        });
+        await biddingRoom.save();
+      } else if (!biddingRoom.isActive) {
+        // Reactivate and update endTime if needed
+        biddingRoom.isActive = true;
+        biddingRoom.endTime = (product as any).biddingEndTime;
+        await biddingRoom.save();
+      }
     }
 
     await product.populate('farmerId', 'name phone location');

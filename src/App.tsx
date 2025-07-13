@@ -14,6 +14,7 @@ import { CartPage } from './pages/CartPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { AddProductPage } from './pages/AddProductPage';
 import { ProfilePage } from './pages/ProfilePage';
+import BiddingRoomPage from './pages/BiddingRoomPage';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
               <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
               <Route path="/farmer/add-product" element={<AddProductPage />} />
               <Route path="/trader/dashboard" element={<TraderDashboard />} />
+              <Route path="/bidding/:roomId" element={<BiddingRoomPage />} />
               {/* More routes will be added here */}
             </Routes>
           </Layout>

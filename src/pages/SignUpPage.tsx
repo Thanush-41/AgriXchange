@@ -43,10 +43,11 @@ export const SignUpPage: React.FC = () => {
     formState: { errors },
     setError,
     watch,
+    setValue,
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      role: selectedRole,
+      role: 'user',
     },
   });
 
@@ -54,7 +55,11 @@ export const SignUpPage: React.FC = () => {
 
   const onSubmit = async (data: SignUpForm) => {
     try {
-      await registerUser(data);
+      console.log('Form data before sending:', data);
+      // Remove confirmPassword before sending to backend
+      const { confirmPassword, ...registrationData } = data;
+      console.log('Registration data to send:', registrationData);
+      await registerUser(registrationData);
       
       // Redirect based on role
       switch (data.role) {
@@ -79,6 +84,7 @@ export const SignUpPage: React.FC = () => {
 
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
+    setValue('role', role); // Update form value
   };
 
   return (
@@ -117,11 +123,8 @@ export const SignUpPage: React.FC = () => {
                 </button>
               ))}
             </div>
-            <input
-              type="hidden"
-              {...register('role')}
-              value={selectedRole}
-            />
+            {/* Register the role field properly */}
+            <input type="hidden" {...register('role')} />
           </div>
 
           {/* Basic Information */}

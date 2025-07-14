@@ -51,18 +51,27 @@ const BiddingRoomPage: React.FC = () => {
     socket.once('authenticated', () => {
       socket.emit('join-bidding-room', roomId);
     });
-    socket.on('bid-placed', (bid: any) => {
+    socket.on('bid-placed', async (bid: any) => {
       // Prevent duplicate bid in history
       setBids(prev => prev.some(b => b._id === bid._id) ? prev : [
-        // Map backend structure to frontend Bid type
         {
           _id: bid._id,
           amount: bid.amount,
-          trader: bid.trader || bid.traderId, // support both socket and REST
+          trader: bid.trader || bid.traderId,
           timestamp: bid.timestamp,
         },
         ...prev
       ]);
+      // Fetch latest room data to update currentHighestBid and all fields
+      if (roomId) {
+        try {
+          const res = await fetch(`http://localhost:5000/api/bidding/room/${roomId}`);
+          const data = await res.json();
+          if (data.success && data.data) {
+            setRoom(data.data);
+          }
+        } catch {}
+      }
     });
     socket.on('bidding-ended', ({ winningBid }: any) => {
       setRoom((prev: any) => prev ? { ...prev, isActive: false, winningBid } : prev);

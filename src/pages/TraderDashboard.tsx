@@ -45,10 +45,11 @@ export const TraderDashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Simulate API call
+      // Simulate API call for all bids by this trader
+      // In real app, fetch from backend using user.id
+      const currentUserId = user?.id || 'trader1';
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock bids data
+      // Mock bids data (all biddings for this trader)
       const mockBids: Bid[] = [
         {
           id: '1',
@@ -81,7 +82,7 @@ export const TraderDashboard: React.FC = () => {
           image: 'https://images.unsplash.com/photo-1546470427-e5f5e7e7ff34?w=150&h=150&fit=crop'
         }
       ];
-
+      // In a real app, filter by user.id from backend. For demo, show all mock bids.
       setBids(mockBids);
       setStats({
         totalBids: mockBids.length,

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Clock, Users, TrendingUp, Eye, Filter, Search } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Clock, Filter, Search, TrendingUp } from 'lucide-react';
 import { Button, Card, Input } from '../components/ui';
 import type { WholesaleProduct } from '../types';
 import { getSocket } from '../utils/socket';
@@ -9,11 +8,14 @@ export const LiveBiddingPage: React.FC = () => {
   const [products, setProducts] = useState<WholesaleProduct[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const socketRef = useRef<any>(null);
+  const joinedRoomsRef = useRef<Set<string>>(new Set());
 
   // Simulated auth context (replace with real auth context if available)
   const user = JSON.parse(localStorage.getItem('agrixchange_user') || 'null');
   const token = localStorage.getItem('agrixchange_token');
 
+  // Fetch products on mount
   useEffect(() => {
     if (!user || user.role !== 'trader') return;
     const fetchBiddings = async () => {
@@ -35,15 +37,70 @@ export const LiveBiddingPage: React.FC = () => {
         setProducts([]);
       }
     };
-    fetchBiddings(); // Only fetch once on mount
-  }, []);    //[token, user]); use in production
+    fetchBiddings();
+  }, []);   //add token, user inside the array in product to get real time
+
+  // Real-time bid updates: join rooms after products are loaded
+  useEffect(() => {
+    if (!user || user.role !== 'trader' || !token || products.length === 0) return;
+    if (!socketRef.current) {
+      socketRef.current = getSocket(token);
+      socketRef.current.emit('authenticate', token);
+      socketRef.current.on('authenticated', () => {
+        // Join all active bidding rooms (only once per room)
+        products.forEach((product: any) => {
+          const roomId = product.biddingRoom?._id;
+          if (roomId && !joinedRoomsRef.current.has(roomId)) {
+            socketRef.current.emit('join-bidding-room', roomId);
+            joinedRoomsRef.current.add(roomId);
+          }
+        });
+      });
+      // Listen for bid-placed events from any room
+      socketRef.current.on('bid-placed', (bid: any) => {
+        setProducts(prevProducts => prevProducts.map(prod => {
+          const roomId = (prod as any).biddingRoom?._id;
+          // bid.productId may be an object or string
+          const bidProductId = typeof bid.productId === 'object' ? bid.productId.id : bid.productId;
+          // Match by product id (string)
+          if (roomId && (prod.id === bidProductId || roomId === bid.roomId)) {
+            return {
+              ...prod,
+              currentBid: bid.amount,
+              bidCount: ((prod as any).bidCount ?? 0) + 1,
+            };
+          }
+          return prod;
+        }));
+      });
+    } else {
+      // If socket already exists, join any new rooms
+      products.forEach((product: any) => {
+        const roomId = product.biddingRoom?._id;
+        if (roomId && !joinedRoomsRef.current.has(roomId)) {
+          socketRef.current.emit('join-bidding-room', roomId);
+          joinedRoomsRef.current.add(roomId);
+        }
+      });
+    }
+    // Cleanup on unmount
+    return () => {
+      if (socketRef.current) {
+        products.forEach((product: any) => {
+          const roomId = product.biddingRoom?._id;
+          if (roomId) {
+            socketRef.current.emit('leave-bidding-room', roomId);
+          }
+        });
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        joinedRoomsRef.current.clear();
+      }
+    };
+  }, [user, token, products]);
 
   // BiddingCard for real API data
-  const BiddingCard: React.FC<{ product: WholesaleProduct }> = ({ product }) => {
-    // Fallbacks for stats (API may not provide these fields)
-    const bidCount = (product as any).bidCount ?? 0;
-    const participants = (product as any).participants ?? 0;
-    const currentBid = (product as any).currentBid ?? product.startingPrice;
+  const BiddingCard: React.FC<{ product: WholesaleProduct & { currentHighestBid?: { amount: number } } }> = ({ product }) => {
     const timeLeft = (product as any).timeLeft ?? '';
     const isEndingSoon = typeof timeLeft === 'string' && timeLeft.includes('m') && !timeLeft.includes('h');
     const handleJoinBidding = () => {
@@ -95,37 +152,9 @@ export const LiveBiddingPage: React.FC = () => {
             <span className="text-sm text-gray-500">{product.quantity} {product.unit}</span>
           </div>
           <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-          <div className="space-y-2 mb-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">Starting Price:</span>
-              <span className="text-sm font-medium">₹{product.startingPrice.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">Current Bid:</span>
-              <span className="text-lg font-bold text-primary-600">₹{currentBid?.toLocaleString()}</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <div className="flex items-center space-x-1">
-                <TrendingUp className="w-4 h-4" />
-                <span>{bidCount} bids</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Users className="w-4 h-4" />
-                <span>{participants} bidders</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">By {(product.farmer as any)?.name || 'Unknown'}</div>
+          {/* Removed Starting Price, Current Bid, bids, bidders, View button, and 'By Unknown' as requested */}
+          <div className="flex items-center justify-end">
             <div className="flex space-x-2">
-              <Link to={`/bidding/${product.id}`}>
-                <Button size="sm" variant="outline">
-                  <Eye className="w-4 h-4 mr-1" />
-                  View
-                </Button>
-              </Link>
               <Button size="sm" className={isEndingSoon ? 'bidding-pulse' : ''} onClick={handleJoinBidding}>
                 Join Bidding
               </Button>

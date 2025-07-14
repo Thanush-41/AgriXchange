@@ -10,6 +10,7 @@ import {
 } from '../utils/index.js';
 import mongoose from 'mongoose';
 import type { IProductWithRatings } from '../types/index.js';
+import { uploadToCloudinary } from '../utils/cloudinary';
 
 export const createProduct = async (req: AuthenticatedRequestWithFiles, res: Response): Promise<void> => {
   try {
@@ -60,12 +61,18 @@ export const createProduct = async (req: AuthenticatedRequestWithFiles, res: Res
     // Handle uploaded images
     const uploadedFiles = req.files as Express.Multer.File[];
     const imageUrls: string[] = [];
-    
     if (uploadedFiles && uploadedFiles.length > 0) {
-      // For now, just store filenames (in production, upload to Cloudinary)
-      uploadedFiles.forEach(file => {
-        imageUrls.push(`/uploads/products/${file.filename || 'temp'}`);
-      });
+      for (const file of uploadedFiles) {
+        try {
+          // Upload to Cloudinary
+          const result: any = await uploadToCloudinary(file.buffer, 'products');
+          imageUrls.push(result.secure_url);
+        } catch (err) {
+          console.error('Cloudinary upload error:', err);
+          res.status(500).json(errorResponse('Image upload failed'));
+          return;
+        }
+      }
     }
     
     // Add farmer ID, location, and images

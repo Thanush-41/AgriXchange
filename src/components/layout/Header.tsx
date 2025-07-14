@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, X, Sprout } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Sprout, Newspaper, CloudSun } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { Button } from '../ui';
@@ -56,12 +56,12 @@ export const Header: React.FC = () => {
     // Common links for authenticated users
     const commonLinks = (
       <>
-        <Link to="/products" className="text-gray-600 hover:text-primary-600 transition-colors">
+        {/* <Link to="/products" className="text-gray-600 hover:text-primary-600 transition-colors">
           Products
         </Link>
         <Link to="/bidding" className="text-gray-600 hover:text-primary-600 transition-colors">
           Live Bidding
-        </Link>
+        </Link> */}
       </>
     );
 
@@ -70,6 +70,10 @@ export const Header: React.FC = () => {
       return (
         <div className="flex items-center space-x-4">
           {commonLinks}
+         <Link to="/products" className="text-gray-600 hover:text-primary-600 transition-colors">
+          Products
+        </Link>
+
           <Link to="/cart" className="relative text-gray-600 hover:text-primary-600 transition-colors">
             <ShoppingCart className="w-6 h-6" />
             {totalItems > 0 && (
@@ -112,6 +116,12 @@ export const Header: React.FC = () => {
       return (
         <div className="flex items-center space-x-4">
           {commonLinks}
+   <Link to="/products" className="text-gray-600 hover:text-primary-600 transition-colors">
+          Products
+        </Link>
+        <Link to="/bidding" className="text-gray-600 hover:text-primary-600 transition-colors">
+          Live Bidding
+        </Link>
           <Link to="/farmer/add-product" className="text-gray-600 hover:text-primary-600 transition-colors">
             Add Product
           </Link>
@@ -155,6 +165,9 @@ export const Header: React.FC = () => {
       return (
         <div className="flex items-center space-x-4">
           {commonLinks}
+                  <Link to="/bidding" className="text-gray-600 hover:text-primary-600 transition-colors">
+          Live Bidding
+        </Link>
           <Link to="/bidding-history" className="text-gray-600 hover:text-primary-600 transition-colors">
             Bidding History
           </Link>

@@ -23,4 +23,6 @@ const upload = multer({
   },
 });
 
+// Note: Cloudinary upload is handled in the controller after multer parses the files.
+
 export const uploadProductImages = upload.array('images', 5);

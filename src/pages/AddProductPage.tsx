@@ -87,41 +87,35 @@ export const AddProductPage: React.FC = () => {
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
     try {
-      // Build the exact payload for wholesale
-      let payload: any = {
-        name: data.name,
-        category: data.category,
-        description: data.description,
-        type: data.type,
-        quantity: data.quantity,
-        unit: data.unit,
-        location: data.location,
-      };
+      // Build FormData for multipart upload
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('category', data.category);
+      formData.append('description', data.description);
+      formData.append('type', data.type);
+      formData.append('quantity', String(data.quantity));
+      formData.append('unit', data.unit || '');
+      formData.append('location', JSON.stringify(data.location));
       if (data.type === 'wholesale') {
-        payload = {
-          ...payload,
-          startingPrice: data.startingPrice,
-          biddingDuration: data.biddingDuration,
-          qualityCertificate: data.qualityCertificate,
-        };
+        formData.append('startingPrice', String(data.startingPrice));
+        formData.append('biddingDuration', String(data.biddingDuration));
+        formData.append('qualityCertificate', data.qualityCertificate || '');
       } else if (data.type === 'retail') {
-        payload = {
-          ...payload,
-          price: data.price,
-        };
+        formData.append('price', String(data.price));
       }
-
-      // Send as JSON (no images for now)
+      // Append images
+      selectedImages.forEach((file) => {
+        formData.append('images', file);
+      });
       const response = await fetch('http://localhost:5000/api/products', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('agrixchange_token')}`,
         },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
-      console.log('Payload sent:', payload);
+      console.log('Payload sent:', formData);
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
 

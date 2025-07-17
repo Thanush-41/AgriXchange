@@ -1,7 +1,7 @@
 // src/utils/socket.ts
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = 'https://agriexchange.onrender.com/';
+const SOCKET_URL = 'https://agrixchange.onrender.com/';
 
 let socket: Socket | null = null;
 

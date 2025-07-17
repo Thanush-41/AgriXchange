@@ -12,8 +12,8 @@ The issue was that your frontend was using **mock authentication data** instead 
 - Added token storage and management
 
 ### 2. Backend API Integration
-- Login now calls: `POST https://agriexchange.onrender.com/api/auth/login`
-- Register now calls: `POST https://agriexchange.onrender.com/auth/register`
+- Login now calls: `POST https://agrixchange.onrender.com/api/auth/login`
+- Register now calls: `POST https://agrixchange.onrender.com/auth/register`
 - Added token storage in localStorage
 - Proper error handling for API responses
 

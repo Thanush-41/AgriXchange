@@ -26,7 +26,7 @@ const BiddingRoomPage: React.FC = () => {
   useEffect(() => {
     if (!roomId) return;
     setLoading(true);
-    fetch(`https://agriexchange.onrender.com/api/bidding/room/${roomId}`)
+    fetch(`https://agrixchange.onrender.com/api/bidding/room/${roomId}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {
@@ -65,7 +65,7 @@ const BiddingRoomPage: React.FC = () => {
       // Fetch latest room data to update currentHighestBid and all fields
       if (roomId) {
         try {
-          const res = await fetch(`https://agriexchange.onrender.com/api/bidding/room/${roomId}`);
+          const res = await fetch(`https://agrixchange.onrender.com/api/bidding/room/${roomId}`);
           const data = await res.json();
           if (data.success && data.data) {
             setRoom(data.data);

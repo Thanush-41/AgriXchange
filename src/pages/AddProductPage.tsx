@@ -107,7 +107,7 @@ export const AddProductPage: React.FC = () => {
       selectedImages.forEach((file) => {
         formData.append('images', file);
       });
-      const response = await fetch('https://agriexchange.onrender.com/api/products', {
+      const response = await fetch('https://agrixchange.onrender.com/api/products', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('agrixchange_token')}`,

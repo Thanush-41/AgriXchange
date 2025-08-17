@@ -1,490 +1,192 @@
-```markdown
-# AgriXchange 🌾
+# AgriXchange 🌾 Extention to BhoomiSetu (https://neokisan-bhoomisetu.onrender.com/)
 
-A comprehensive MERN web application that connects **farmers** directly with **consumers** and **traders**, eliminating middlemen and ensuring fair prices for agricultural produce.
-
-<p align="center">
-  <img alt="AgriXchange" src="https://img.shields.io/badge/MERN-Stack-1?logo=mongodb&logoColor=white&labelColor=47A248&color=47A248"/>
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5+-1?logo=typescript&logoColor=white&labelColor=2F74C0&color=2F74C0"/>
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-React%2018-1?logo=vite&logoColor=white&labelColor=646CFF&color=646CFF"/>
-  <img alt="License" src="https://img.shields.io/badge/License-MIT-1?color=black"/>
-</p>
+A comprehensive web application that connects farmers directly with consumers and retailers, eliminating middlemen and ensuring fair prices for agricultural produce.
 
 ---
 
-## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Monorepo Structure](#monorepo-structure)
-- [Quick Start](#quick-start)
-- [Installation (Full Setup)](#installation-full-setup)
-  - [1) Prerequisites](#1-prerequisites)
-  - [2) Clone & Install](#2-clone--install)
-  - [3) Configure Environment](#3-configure-environment)
-  - [4) Start Development](#4-start-development)
-  - [5) Seed Sample Data (optional)](#5-seed-sample-data-optional)
-- [Available Scripts](#available-scripts)
-- [Environment Variables](#environment-variables)
-- [Core Features & Flows](#core-features--flows)
-- [API Overview](#api-overview)
-- [Socket.IO Events](#socketio-events)
-- [Testing & Linting](#testing--linting)
-- [Docker (Optional)](#docker-optional)
-- [Troubleshooting](#troubleshooting)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
+## 🚀 Features
 
----
-
-## Overview
-**AgriXchange** streamlines agri-commerce with role‑based experiences, live wholesale bidding, weather insights, news, and verified trading.
-
-### Roles
-- **Farmer** – list produce (retail/wholesale), join bidding, view weather/news, upload AGMARK certificates
-- **Trader** – participate in live auctions, maintain bidding history, trade with GSTIN/license verification
-- **Consumer** – discover local fresh produce, filter smartly, add to cart, checkout with delivery options
-
-> **Demo Authentication**: For the demo, any valid phone (10 digits) + a password (6+ chars) is accepted. Authentication is simulated.
-
----
-
-## Features
 ### For Farmers
-- Product listing (retail & wholesale)
-- Live wholesale bidding (real-time)
-- Weather integration & 7‑day forecast
-- Agricultural news feed
-- Quality certification (AGMARK) upload
+- **Product Listing**: List produce for both retail and wholesale markets  
+- **Live Bidding**: Participate in real-time auctions for wholesale orders  
+- **Weather Integration**: Access current weather and forecasts  
+- **Agricultural News**: Stay updated with latest farming news and trends  
+- **Quality Certification**: Upload AGMARK quality certificates  
 
 ### For Traders
-- Live wholesale bidding
-- Bidding history & transactions
-- Verified trading (GSTIN/license)
+- **Wholesale Bidding**: Participate in live auctions for bulk purchases  
+- **Bidding History**: Track all previous bids and transactions  
+- **Verified Trading**: GSTIN and license verification for trusted trading  
 
 ### For Consumers
-- Browse & purchase fresh produce
-- Smart filtering (location, price, category, quality)
-- Cart & checkout with delivery partner selection
+- **Fresh Produce**: Browse and purchase directly from local farmers  
+- **Smart Filtering**: Filter by location, price, category, and quality  
+- **Shopping Cart**: Easy cart management and checkout  
+- **Delivery Partners**: Choose from available delivery options  
 
 ---
 
-## Architecture
-```
+## 🛠️ Tech Stack
 
-MERN Monorepo
-├─ packages/
-│  ├─ client (Vite + React 18 + TS + Tailwind + RHF/Zod + Router + Socket.IO client)
-│  └─ server (Node + Express + TS + MongoDB/Mongoose + Socket.IO server + JWT)
-└─ shared/ (types & utilities, optional)
-
-```
-High‑level flow:
-1. Client authenticates → receives a mock token (demo) / JWT (real backend)
-2. REST APIs serve products, profiles, orders; Socket.IO handles bidding rooms
-3. Weather & News retrieved via external APIs (server or client adapter)
+- **Frontend**: React 18 + TypeScript  
+- **Build Tool**: Vite  
+- **Styling**: Tailwind CSS  
+- **Routing**: React Router v6  
+- **State Management**: React Context API  
+- **Forms**: React Hook Form + Zod validation  
+- **Icons**: Lucide React  
+- **Real-time**: Socket.IO (for live bidding)  
 
 ---
 
-## Tech Stack
-- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, React Router v6
-- **State Mgmt**: React Context API
-- **Forms**: React Hook Form + Zod
-- **UI**: Custom components, Lucide Icons
-- **Real‑time**: Socket.IO
-- **Backend**: Node.js, Express, MongoDB (Mongoose), JWT, Bcrypt, Multer
+## 🏗️ Project Structure
 
-> If you are starting with the **frontend‑only demo**, the server pieces can be mocked. The steps below include the full MERN setup.
+src/
+├── components/
+│ ├── ui/ # Reusable UI components
+│ ├── layout/ # Layout components (Header, Footer, Layout)
+│ └── forms/ # Form components
+├── pages/ # Page components
+├── context/ # React Context providers
+├── hooks/ # Custom React hooks
+├── services/ # API services and utilities
+├── types/ # TypeScript type definitions
+└── utils/ # Utility functions
 
----
-
-## Monorepo Structure
-```
-
-agrixchange/
-├─ packages/
-│  ├─ client/
-│  │  ├─ src/
-│  │  │  ├─ components/
-│  │  │  │  ├─ ui/
-│  │  │  │  ├─ layout/
-│  │  │  │  └─ forms/
-│  │  │  ├─ pages/
-│  │  │  ├─ context/
-│  │  │  ├─ hooks/
-│  │  │  ├─ services/
-│  │  │  ├─ types/
-│  │  │  └─ utils/
-│  │  ├─ index.html
-│  │  └─ vite.config.ts
-│  └─ server/
-│     ├─ src/
-│     │  ├─ app.ts
-│     │  ├─ server.ts
-│     │  ├─ config/
-│     │  ├─ models/
-│     │  ├─ routes/
-│     │  ├─ controllers/
-│     │  ├─ middlewares/
-│     │  ├─ sockets/
-│     │  └─ utils/
-│     └─ tsconfig.json
-├─ .editorconfig
-├─ package.json (workspace root)
-└─ README.md
-
-````
+yaml
+Copy
+Edit
 
 ---
 
-## Quick Start
-> **Frontend‑only demo** (mock auth, mock APIs)
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher)  
+- npm or yarn  
+
+### Installation
+
+1. **Clone the repository**
 ```bash
-# Node 18+
-# 1) Clone
-git clone https://github.com/Thanush-41/AgriXchange
-cd AgriXchange/packages/client
-
-# 2) Install & run
-npm install
-npm run dev
-# Open http://localhost:5173
-````
-
----
-
-## Installation (Full Setup)
-
-### 1) Prerequisites
-
-* **Node.js** v18+ and **npm** (or **pnpm/yarn**)
-* **MongoDB** (local Docker or Atlas)
-* (Optional) **Docker** & **Docker Compose** for one‑command run
-
-### 2) Clone & Install
-
-```bash
-git clone https://github.com/Thanush-41/AgriXchange
+git clone https://github.com/Thanush-41/AgriXchange.git
 cd AgriXchange
+Install dependencies
 
-# Install at workspace root (if using workspaces) OR per package
+
 npm install
+Start the development server
 
-# Install client & server dependencies (if not using workspaces)
-cd packages/client && npm install
-cd ../server && npm install
-```
 
-### 3) Configure Environment
-
-Create **.env** files as shown below.
-
-**packages/server/.env**
-
-```
-# Server
-PORT=8080
-NODE_ENV=development
-CLIENT_ORIGIN=http://localhost:5173
-
-# Database
-MONGODB_URI=mongodb://127.0.0.1:27017/agrixchange
-
-# Auth
-JWT_SECRET=super_secret_key
-JWT_EXPIRES_IN=7d
-
-# Uploads (local or cloud)
-UPLOAD_DIR=./uploads
-
-# External APIs
-WEATHER_API_BASE=https://api.openweathermap.org/data/2.5
-WEATHER_API_KEY=your_openweather_key
-NEWS_API_BASE=https://newsapi.org/v2
-NEWS_API_KEY=your_newsapi_key
-```
-
-**packages/client/.env**
-
-```
-# Vite client env vars must start with VITE_
-VITE_API_URL=http://localhost:8080
-VITE_SOCKET_URL=http://localhost:8080
-VITE_WEATHER_API_KEY=your_openweather_key
-VITE_NEWS_API_KEY=your_newsapi_key
-```
-
-> If running MongoDB in Docker, update `MONGODB_URI` accordingly.
-
-### 4) Start Development
-
-Run server and client in separate terminals.
-
-```bash
-# Terminal A – Server
-cd packages/server
 npm run dev
-# server: http://localhost:8080
+Open your browser and navigate to:
+👉 http://localhost:5173
+  ```
+📱 User Roles & Authentication
+The application supports three user roles:
 
-# Terminal B – Client
-cd packages/client
-npm run dev
-# client: http://localhost:5173
-```
+Farmer → List products, participate in bidding, access weather & news
 
-### 5) Seed Sample Data (optional)
+Trader → Participate in wholesale bidding with verified credentials
 
-If a seed script exists:
+Consumer → Browse and purchase retail products
 
-```bash
-cd packages/server
-npm run seed
-```
+Demo Credentials
+Phone: Any 10-digit number
 
-This will insert sample users (farmer/trader/consumer), products, and a demo auction room.
+Password: Any 6+ character password
 
----
+(Authentication is simulated for demo purposes)
 
-## Available Scripts
+🎯 Key Pages
+Landing Page – Features overview
 
-**Client (packages/client)**
+Authentication – Sign in/Sign up with role selection
 
-```bash
-npm run dev        # Vite dev server
-npm run build      # Production build
-npm run preview    # Preview prod build
-npm run lint       # ESLint
-npm run format     # Prettier (if configured)
-```
+Dashboards – Role-specific dashboards
 
-**Server (packages/server)**
+Product Listing – Advanced filtering and browsing
 
-```bash
-npm run dev        # Nodemon + ts-node
-npm run build      # TypeScript build
-npm run start      # Run compiled server
-npm run lint       # ESLint
-npm run seed       # Seed database (optional)
-```
+Live Bidding – Real-time auction interface
 
----
+Cart & Checkout – Shopping cart + delivery partner selection
 
-## Environment Variables
+Weather – Weather details for farmers
 
-| Scope  | Variable               | Description                                 |
-| ------ | ---------------------- | ------------------------------------------- |
-| server | `PORT`                 | API port (default 8080)                     |
-| server | `MONGODB_URI`          | Mongo connection string                     |
-| server | `JWT_SECRET`           | Secret for signing JWTs                     |
-| server | `JWT_EXPIRES_IN`       | Token duration (e.g., `7d`)                 |
-| server | `CLIENT_ORIGIN`        | CORS allowlist origin                       |
-| server | `WEATHER_API_*`        | Weather API base/key                        |
-| server | `NEWS_API_*`           | News API base/key                           |
-| client | `VITE_API_URL`         | Base URL to server                          |
-| client | `VITE_SOCKET_URL`      | Socket.IO server URL                        |
-| client | `VITE_WEATHER_API_KEY` | Client weather key (if calling from client) |
+News – Agricultural updates
 
-> For production, DO NOT expose secrets in the client. Proxy external calls through the server.
+Profile Management – User profile and settings
 
----
+🔧 Development Scripts
 
-## Core Features & Flows
+npm run dev       # Start development server
+npm run build     # Build for production
+npm run preview   # Preview production build
+npm run lint      # Run ESLint
+🎨 Design System
+Primary Colors: Green (agriculture feel)
 
-### Live Bidding System
+Secondary Colors: Yellow/Amber highlights
 
-* Real‑time auction rooms using **Socket.IO**
-* Bid validation on client & server
-* Highest‑bid tracking and winner broadcast at auction end
+Typography: Inter font family
 
-### Role‑Based Access
+Components: Consistent buttons, inputs, and cards
 
-* **Protected routes** with role guards (Farmer/Trader/Consumer)
-* Role‑specific dashboards & navigation
+Responsive: Mobile-first responsive design
 
-### Product Management
+🌟 Key Features Implementation
+Live Bidding System
+Real-time updates using Socket.IO
 
-* Create/update listings with images (Multer/local; cloud optional)
-* Categories & location metadata
-* Quality certificates (AGMARK) upload & verification flag
+Bidding room management
 
-### Weather & News
+Automatic bid validation
 
-* Weather: current + forecast via OpenWeather (or similar)
-* News: agriculture category via News API (or curated feed)
+Winner determination
 
----
+Role-Based Access
+Protected routes by user role
 
-## API Overview
+Role-specific navigation and UI
 
-> *Paths may vary based on implementation.*
+Conditional rendering
 
-**Auth**
+Product Management
+Image upload simulation
 
-* `POST /api/auth/register` – register with role
-* `POST /api/auth/login` – login → JWT (prod) / mock (demo)
-* `GET /api/auth/me` – current user
+Category-based organization
 
-**Users & Profiles**
-
-* `GET /api/users/:id`
-* `PATCH /api/users/:id`
+Location-based filtering
 
-**Products**
+Quality certification handling
 
-* `GET /api/products` – list with filters
-* `POST /api/products` – create (Farmer)
-* `GET /api/products/:id`
-* `PATCH /api/products/:id`
-* `DELETE /api/products/:id`
+🚧 Future Enhancements
+Payment gateway integration
 
-**Bidding**
+Real backend API integration
 
-* `GET /api/auctions/:id` – auction details
-* `POST /api/auctions` – create auction (Farmer)
-* `POST /api/auctions/:id/close` – close auction
+Mobile app development
 
-**Orders / Cart**
+Advanced analytics dashboard
 
-* `GET /api/cart`
-* `POST /api/cart/items`
-* `POST /api/orders` – checkout
+Government scheme integration
 
-**Utility**
+Multi-language support
 
-* `GET /api/weather?lat=&lon=`
-* `GET /api/news`
+📄 License
+This project is licensed under the MIT License – see the LICENSE file for details.
 
----
+🤝 Contributing
+Contributions are welcome!
+Please feel free to submit a Pull Request.
 
-## Socket.IO Events
+📞 Support
+For questions/support: thanushgarimella@gmail.com
 
-**Client → Server**
 
-* `join_room` `{ auctionId }`
-* `place_bid` `{ auctionId, amount }`
-* `leave_room` `{ auctionId }`
+✅ This version removes the stray ESLint config snippet you had at the end and keeps it **clean, copy-paste ready** for your repo.
 
-**Server → Client**
+Do you also want me to create a **badges section** (build, license, PRs welcome, etc.) at the top of the README for a more professional look?
 
-* `room_joined` `{ auctionId, members }`
-* `bid_placed` `{ auctionId, amount, user }`
-* `bid_rejected` `{ reason }`
-* `auction_closed` `{ auctionId, winner }`
 
----
 
-## Testing & Linting
-
-* **ESLint** with TypeScript rules
-* **Zod** schemas for runtime validation
-* (Optional) **Vitest/Jest** for unit tests
-
-```bash
-# client
-cd packages/client
-npm run lint
-# server
-cd ../server
-npm run lint
-```
-
----
-
-## Docker (Optional)
-
-**docker-compose.yml** (example)
-
-```yaml
-version: "3.9"
-services:
-  mongo:
-    image: mongo:6
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-  server:
-    build: ./packages/server
-    environment:
-      PORT: 8080
-      MONGODB_URI: mongodb://mongo:27017/agrixchange
-      CLIENT_ORIGIN: http://localhost:5173
-      JWT_SECRET: super_secret_key
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mongo
-
-  client:
-    build: ./packages/client
-    environment:
-      VITE_API_URL: http://localhost:8080
-      VITE_SOCKET_URL: http://localhost:8080
-    ports:
-      - "5173:5173"
-    depends_on:
-      - server
-
-volumes:
-  mongo_data:
-```
-
-Run:
-
-```bash
-docker compose up --build
-```
-
----
-
-## Troubleshooting
-
-* **CORS errors**: Ensure `CLIENT_ORIGIN` matches the client URL
-* **Socket not connecting**: Check `VITE_SOCKET_URL` and server logs
-* **Mongo connect failed**: Verify `MONGODB_URI` and that Mongo is running
-* **Env not loading**: Confirm `.env` files and prefixes (`VITE_` on client)
-* **Tailwind styles missing**: Ensure Tailwind is configured and `@tailwind` imports exist
-
----
-
-## Roadmap
-
-* ✅ Live bidding (baseline)
-* ✅ Role‑based access & protected routes
-* ⏳ Payment gateway integration
-* ⏳ Real backend API hardening & auditing
-* ⏳ Mobile app (React Native/Expo)
-* ⏳ Analytics dashboard (farmer/trader)
-* ⏳ Government scheme integration
-* ⏳ Multi‑language support
-
----
-
-## Contributing
-
-Contributions are welcome! Please fork the repo and open a PR.
-
-1. Create a feature branch: `git checkout -b feat/awesome`
-2. Commit your changes: `git commit -m "feat: add awesome"`
-3. Push the branch: `git push origin feat/awesome`
-4. Open a Pull Request
-
-> Run `npm run lint` and ensure CI checks pass before requesting review.
-
----
-
-## License
-
-This project is licensed under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
-
----
-
-### Contact
-
-For questions/support: **[support@agrixchange.com](mailto:support@agrixchange.com)**
-
-```
-```

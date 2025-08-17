@@ -77,6 +77,30 @@ Install dependencies
 npm install
 Start the development server
 
+# Environment Configuration
+NODE_ENV=development
+PORT=5000
+
+# Database
+MONGODB_URI=...
+# JWT Secret
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+
+# Cloudinary (for image uploads)
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+CLOUDINARY_URL=...
+
+# Weather API (OpenWeatherMap)
+WEATHER_API_KEY=...
+# News API
+NEWS_API_KEY=your-news-api-key
+
+# Cors Origins
+CORS_ORIGIN=http://localhost:5173
+
+
 
 npm run dev
 Open your browser and navigate to:

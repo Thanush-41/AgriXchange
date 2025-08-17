@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, X, Sprout } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Sprout, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { Button } from '../ui';
@@ -208,11 +208,23 @@ export const Header: React.FC = () => {
     <header className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <Sprout className="w-8 h-8 text-primary-600" />
-            <span className="text-2xl font-bold text-gray-900">AgriXchange</span>
-          </Link>
+          <div className="flex items-center space-x-6">
+            {/* Back to NeoKisan Button */}
+            <a 
+              href="https://neokisan-bhoomisetu.onrender.com/" 
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors bg-gray-50 hover:bg-gray-100 px-3 py-2 rounded-lg"
+              target="_self"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-sm font-medium">Back to NeoKisan-BhoomiSetu</span>
+            </a>
+            
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2">
+              <Sprout className="w-8 h-8 text-primary-600" />
+              <span className="text-2xl font-bold text-gray-900">AgriXchange</span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
@@ -233,6 +245,16 @@ export const Header: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t">
           <div className="container mx-auto px-4 py-4 space-y-4">
+            {/* Back to NeoKisan Button - Mobile */}
+            <a 
+              href="https://neokisan-bhoomisetu.onrender.com/" 
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors bg-gray-50 hover:bg-gray-100 px-3 py-2 rounded-lg"
+              target="_self"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-medium">Back to BhoomiSetu</span>
+            </a>
+            
             <Link to="/products" className="block text-gray-600 hover:text-primary-600 transition-colors">
               Products
             </Link>
